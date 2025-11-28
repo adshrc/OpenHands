@@ -121,7 +121,6 @@ const openHandsHandlers = [
       "openhands/claude-sonnet-4-20250514",
       "openhands/claude-sonnet-4-5-20250929",
       "openhands/claude-haiku-4-5-20251001",
-      "openhands/claude-opus-4-5-20251101",
       "sambanova/Meta-Llama-3.1-8B-Instruct",
     ]),
   ),
