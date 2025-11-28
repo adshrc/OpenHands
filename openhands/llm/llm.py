@@ -835,6 +835,7 @@ class LLM(RetryMixin, DebugMixin):
                     'openrouter/anthropic/claude-sonnet-4',
                     'openrouter/anthropic/claude-sonnet-4-5-20250929',
                     'openrouter/anthropic/claude-haiku-4-5-20251001',
+                    'openrouter/anthropic/claude-opus-4-5-20251101',
                 )
             ):
                 message.force_string_serializer = True
