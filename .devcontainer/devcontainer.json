@@ -16,4 +16,7 @@
 	"containerEnv": {
 		"DOCKER_HOST_ADDR": "host.docker.internal"
 	},
+	"remoteEnv": {
+		"WORKSPACE_BASE": "${localWorkspaceFolder}/workspace"
+	}
 }
