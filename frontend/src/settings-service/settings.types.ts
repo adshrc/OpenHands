@@ -35,6 +35,12 @@ export type ApiSettings = {
   email_verified?: boolean;
   git_user_name?: string;
   git_user_email?: string;
+  // Asana integration settings
+  asana_access_token_set?: boolean;
+  asana_webhook_secret_set?: boolean;
+  asana_agent_user_gid?: string | null;
+  asana_workspace_gid?: string | null;
+  asana_project_gid?: string | null;
 };
 
 export type PostApiSettings = ApiSettings & {
@@ -50,4 +56,10 @@ export type PostApiSettings = ApiSettings & {
     }[];
     shttp_servers: (string | { url: string; api_key?: string })[];
   };
+  // Asana integration settings (for POST)
+  asana_access_token?: string | null;
+  asana_webhook_secret?: string | null;
+  asana_agent_user_gid?: string | null;
+  asana_workspace_gid?: string | null;
+  asana_project_gid?: string | null;
 };

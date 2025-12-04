@@ -69,10 +69,17 @@ async def load_settings(
             search_api_key_set=settings.search_api_key is not None
             and bool(settings.search_api_key),
             provider_tokens_set=provider_tokens_set,
+            asana_access_token_set=settings.asana_access_token is not None
+            and bool(settings.asana_access_token),
+            asana_webhook_secret_set=settings.asana_webhook_secret is not None
+            and bool(settings.asana_webhook_secret),
         )
         settings_with_token_data.llm_api_key = None
         settings_with_token_data.search_api_key = None
         settings_with_token_data.sandbox_api_key = None
+        # Don't expose Asana tokens in the response
+        settings_with_token_data.asana_access_token = None
+        settings_with_token_data.asana_webhook_secret = None
         return settings_with_token_data
     except Exception as e:
         logger.warning(f'Invalid token: {e}')
@@ -122,6 +129,28 @@ async def store_llm_settings(
         # Keep existing search API key if not provided
         if settings.search_api_key is None:
             settings.search_api_key = existing_settings.search_api_key
+        # Keep existing Asana settings if not provided (None means keep existing)
+        # Empty string "" means explicitly clear the value
+        if settings.asana_access_token is None:
+            settings.asana_access_token = existing_settings.asana_access_token
+        elif settings.asana_access_token == '':
+            settings.asana_access_token = None
+        if settings.asana_agent_user_gid is None:
+            settings.asana_agent_user_gid = existing_settings.asana_agent_user_gid
+        elif settings.asana_agent_user_gid == '':
+            settings.asana_agent_user_gid = None
+        if settings.asana_workspace_gid is None:
+            settings.asana_workspace_gid = existing_settings.asana_workspace_gid
+        elif settings.asana_workspace_gid == '':
+            settings.asana_workspace_gid = None
+        if settings.asana_project_gid is None:
+            settings.asana_project_gid = existing_settings.asana_project_gid
+        elif settings.asana_project_gid == '':
+            settings.asana_project_gid = None
+        if settings.asana_webhook_secret is None:
+            settings.asana_webhook_secret = existing_settings.asana_webhook_secret
+        elif settings.asana_webhook_secret == '':
+            settings.asana_webhook_secret = None
 
     return settings
 

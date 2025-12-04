@@ -49,6 +49,12 @@ class Settings(BaseModel):
     git_user_name: str | None = None
     git_user_email: str | None = None
     v1_enabled: bool | None = None
+    # Asana integration settings (stored unencrypted)
+    asana_access_token: str | None = None
+    asana_agent_user_gid: str | None = None
+    asana_workspace_gid: str | None = None
+    asana_project_gid: str | None = None
+    asana_webhook_secret: str | None = None
 
     model_config = ConfigDict(
         validate_assignment=True,

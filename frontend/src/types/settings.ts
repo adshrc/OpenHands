@@ -63,6 +63,12 @@ export type Settings = {
   EMAIL_VERIFIED?: boolean;
   GIT_USER_NAME?: string;
   GIT_USER_EMAIL?: string;
+  // Asana integration settings (stored in settings, not as provider tokens)
+  ASANA_ACCESS_TOKEN_SET?: boolean;
+  ASANA_WEBHOOK_SECRET_SET?: boolean;
+  ASANA_AGENT_USER_GID?: string | null;
+  ASANA_WORKSPACE_GID?: string | null;
+  ASANA_PROJECT_GID?: string | null;
 };
 
 export type PostSettings = Settings & {
@@ -70,4 +76,10 @@ export type PostSettings = Settings & {
   llm_api_key?: string | null;
   search_api_key?: string;
   mcp_config?: MCPConfig;
+  // Asana settings
+  asana_access_token?: string | null;
+  asana_webhook_secret?: string | null;
+  asana_agent_user_gid?: string | null;
+  asana_workspace_gid?: string | null;
+  asana_project_gid?: string | null;
 };

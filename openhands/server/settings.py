@@ -33,6 +33,9 @@ class GETSettingsModel(Settings):
     )
     llm_api_key_set: bool
     search_api_key_set: bool = False
+    # Asana settings - indicate if tokens are set (without exposing values)
+    asana_access_token_set: bool = False
+    asana_webhook_secret_set: bool = False
 
     model_config = ConfigDict(use_enum_values=True)
 

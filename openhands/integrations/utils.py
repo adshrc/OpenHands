@@ -7,7 +7,22 @@ from openhands.integrations.azure_devops.azure_devops_service import (
 from openhands.integrations.bitbucket.bitbucket_service import BitBucketService
 from openhands.integrations.github.github_service import GitHubService
 from openhands.integrations.gitlab.gitlab_service import GitLabService
-from openhands.integrations.provider import ProviderType
+from openhands.integrations.service_types import ProviderType
+
+
+async def validate_asana_token(token: SecretStr) -> bool:
+    """Validate an Asana token by calling the API."""
+    import httpx
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                'https://app.asana.com/api/1.0/users/me',
+                headers={'Authorization': f'Bearer {token.get_secret_value()}'},
+            )
+            return response.status_code == 200
+    except Exception:
+        return False
 
 
 async def validate_provider_token(

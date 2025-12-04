@@ -35,6 +35,12 @@ const saveSettingsMutationFn = async (settings: Partial<PostSettings>) => {
       settings.GIT_USER_NAME?.trim() || DEFAULT_SETTINGS.GIT_USER_NAME,
     git_user_email:
       settings.GIT_USER_EMAIL?.trim() || DEFAULT_SETTINGS.GIT_USER_EMAIL,
+    // Asana integration settings
+    asana_access_token: settings.asana_access_token,
+    asana_webhook_secret: settings.asana_webhook_secret,
+    asana_agent_user_gid: settings.asana_agent_user_gid,
+    asana_workspace_gid: settings.asana_workspace_gid,
+    asana_project_gid: settings.asana_project_gid,
   };
 
   await SettingsService.saveSettings(apiSettings);

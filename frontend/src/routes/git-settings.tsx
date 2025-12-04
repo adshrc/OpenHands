@@ -18,13 +18,18 @@ import {
 import { retrieveAxiosErrorMessage } from "#/utils/retrieve-axios-error-message";
 import { GitSettingInputsSkeleton } from "#/components/features/settings/git-settings/github-settings-inputs-skeleton";
 import { useAddGitProviders } from "#/hooks/mutation/use-add-git-providers";
+import { useSaveSettings } from "#/hooks/mutation/use-save-settings";
 import { useUserProviders } from "#/hooks/use-user-providers";
 import { ProjectManagementIntegration } from "#/components/features/settings/project-management/project-management-integration";
+import { AsanaIntegration } from "#/components/features/settings/asana/asana-integration";
 
 function GitSettingsScreen() {
   const { t } = useTranslation();
 
-  const { mutate: saveGitProviders, isPending } = useAddGitProviders();
+  const { mutate: saveGitProviders, isPending: isGitPending } =
+    useAddGitProviders();
+  const { mutate: saveSettings, isPending: isSettingsPending } =
+    useSaveSettings();
   const { mutate: disconnectGitTokens } = useLogout();
 
   const { data: settings, isLoading } = useSettings();
@@ -32,6 +37,7 @@ function GitSettingsScreen() {
 
   const { data: config } = useConfig();
 
+  // Git provider state
   const [githubTokenInputHasValue, setGithubTokenInputHasValue] =
     React.useState(false);
   const [gitlabTokenInputHasValue, setGitlabTokenInputHasValue] =
@@ -50,6 +56,16 @@ function GitSettingsScreen() {
   const [azureDevOpsHostInputHasValue, setAzureDevOpsHostInputHasValue] =
     React.useState(false);
 
+  // Asana state
+  const [asanaTokenInputHasValue, setAsanaTokenInputHasValue] =
+    React.useState(false);
+  const [asanaAgentUserGidInputHasValue, setAsanaAgentUserGidInputHasValue] =
+    React.useState(false);
+  const [asanaWorkspaceGidInputHasValue, setAsanaWorkspaceGidInputHasValue] =
+    React.useState(false);
+  const [asanaProjectGidInputHasValue, setAsanaProjectGidInputHasValue] =
+    React.useState(false);
+
   const existingGithubHost = settings?.PROVIDER_TOKENS_SET.github;
   const existingGitlabHost = settings?.PROVIDER_TOKENS_SET.gitlab;
   const existingBitbucketHost = settings?.PROVIDER_TOKENS_SET.bitbucket;
@@ -60,6 +76,7 @@ function GitSettingsScreen() {
   const isGitLabTokenSet = providers.includes("gitlab");
   const isBitbucketTokenSet = providers.includes("bitbucket");
   const isAzureDevOpsTokenSet = providers.includes("azure_devops");
+  const isPending = isGitPending || isSettingsPending;
 
   const formAction = async (formData: FormData) => {
     const disconnectButtonClicked =
@@ -83,41 +100,111 @@ function GitSettingsScreen() {
     const azureDevOpsHost =
       formData.get("azure-devops-host-input")?.toString() || "";
 
-    // Create providers object with all tokens
-    const providerTokens: Record<string, { token: string; host: string }> = {
-      github: { token: githubToken, host: githubHost },
-      gitlab: { token: gitlabToken, host: gitlabHost },
-      bitbucket: { token: bitbucketToken, host: bitbucketHost },
-      azure_devops: { token: azureDevOpsToken, host: azureDevOpsHost },
+    // Asana fields
+    const asanaToken =
+      formData.get("asana-access-token-input")?.toString() || "";
+    const asanaAgentUserGid =
+      formData.get("asana-agent-user-gid-input")?.toString() || "";
+    const asanaWorkspaceGid =
+      formData.get("asana-workspace-gid-input")?.toString() || "";
+    const asanaProjectGid =
+      formData.get("asana-project-gid-input")?.toString() || "";
+
+    // Check if any values changed
+    const hasGitChanges =
+      githubToken ||
+      gitlabToken ||
+      bitbucketToken ||
+      azureDevOpsToken ||
+      githubHost ||
+      gitlabHost ||
+      bitbucketHost ||
+      azureDevOpsHost;
+    const hasAsanaChanges =
+      asanaToken ||
+      asanaAgentUserGidInputHasValue ||
+      asanaWorkspaceGidInputHasValue ||
+      asanaProjectGidInputHasValue;
+
+    if (!hasGitChanges && !hasAsanaChanges) {
+      return;
+    }
+
+    const onSettled = () => {
+      setGithubTokenInputHasValue(false);
+      setGitlabTokenInputHasValue(false);
+      setBitbucketTokenInputHasValue(false);
+      setAzureDevOpsTokenInputHasValue(false);
+      setGithubHostInputHasValue(false);
+      setGitlabHostInputHasValue(false);
+      setBitbucketHostInputHasValue(false);
+      setAzureDevOpsHostInputHasValue(false);
+      setAsanaTokenInputHasValue(false);
+      setAsanaAgentUserGidInputHasValue(false);
+      setAsanaWorkspaceGidInputHasValue(false);
+      setAsanaProjectGidInputHasValue(false);
     };
 
-    saveGitProviders(
-      {
-        providers: providerTokens,
-      },
-      {
-        onSuccess: () => {
-          displaySuccessToast(t(I18nKey.SETTINGS$SAVED));
+    // Handle Asana settings separately via settings API
+    if (hasAsanaChanges) {
+      saveSettings(
+        {
+          // Only include fields that were actually modified
+          // Send empty string "" to clear, undefined to keep existing
+          asana_access_token: asanaToken || undefined,
+          asana_agent_user_gid: asanaAgentUserGidInputHasValue
+            ? asanaAgentUserGid
+            : undefined,
+          asana_workspace_gid: asanaWorkspaceGidInputHasValue
+            ? asanaWorkspaceGid
+            : undefined,
+          asana_project_gid: asanaProjectGidInputHasValue
+            ? asanaProjectGid
+            : undefined,
         },
-        onError: (error) => {
-          const errorMessage = retrieveAxiosErrorMessage(error);
-          displayErrorToast(errorMessage || t(I18nKey.ERROR$GENERIC));
+        {
+          onSuccess: () => {
+            if (!hasGitChanges) {
+              displaySuccessToast(t(I18nKey.SETTINGS$SAVED));
+            }
+          },
+          onError: (error) => {
+            const errorMessage = retrieveAxiosErrorMessage(error);
+            displayErrorToast(errorMessage || t(I18nKey.ERROR$GENERIC));
+          },
+          onSettled: hasGitChanges ? undefined : onSettled,
         },
-        onSettled: () => {
-          setGithubTokenInputHasValue(false);
-          setGitlabTokenInputHasValue(false);
-          setBitbucketTokenInputHasValue(false);
-          setAzureDevOpsTokenInputHasValue(false);
-          setGithubHostInputHasValue(false);
-          setGitlabHostInputHasValue(false);
-          setBitbucketHostInputHasValue(false);
-          setAzureDevOpsHostInputHasValue(false);
+      );
+    }
+
+    // Handle git providers via secrets API
+    if (hasGitChanges) {
+      const providerTokens: Record<string, { token: string; host: string }> = {
+        github: { token: githubToken, host: githubHost },
+        gitlab: { token: gitlabToken, host: gitlabHost },
+        bitbucket: { token: bitbucketToken, host: bitbucketHost },
+        azure_devops: { token: azureDevOpsToken, host: azureDevOpsHost },
+      };
+
+      saveGitProviders(
+        {
+          providers: providerTokens,
         },
-      },
-    );
+        {
+          onSuccess: () => {
+            displaySuccessToast(t(I18nKey.SETTINGS$SAVED));
+          },
+          onError: (error) => {
+            const errorMessage = retrieveAxiosErrorMessage(error);
+            displayErrorToast(errorMessage || t(I18nKey.ERROR$GENERIC));
+          },
+          onSettled,
+        },
+      );
+    }
   };
 
-  const formIsClean =
+  const gitFormIsClean =
     !githubTokenInputHasValue &&
     !gitlabTokenInputHasValue &&
     !bitbucketTokenInputHasValue &&
@@ -126,6 +213,14 @@ function GitSettingsScreen() {
     !gitlabHostInputHasValue &&
     !bitbucketHostInputHasValue &&
     !azureDevOpsHostInputHasValue;
+
+  const asanaFormIsClean =
+    !asanaTokenInputHasValue &&
+    !asanaAgentUserGidInputHasValue &&
+    !asanaWorkspaceGidInputHasValue &&
+    !asanaProjectGidInputHasValue;
+
+  const formIsClean = gitFormIsClean && asanaFormIsClean;
   const shouldRenderExternalConfigureButtons = isSaas && config.APP_SLUG;
   const shouldRenderProjectManagementIntegrations =
     config?.FEATURE_FLAGS?.ENABLE_JIRA ||
@@ -227,6 +322,26 @@ function GitSettingsScreen() {
               />
             )}
           </div>
+
+          {/* Asana Integration - available for all modes */}
+          {!isLoading && (
+            <div className="mt-6">
+              <AsanaIntegration
+                onAsanaTokenChange={(value: string) =>
+                  setAsanaTokenInputHasValue(!!value)
+                }
+                onAsanaAgentUserGidChange={(value: string) =>
+                  setAsanaAgentUserGidInputHasValue(!!value)
+                }
+                onAsanaWorkspaceGidChange={(value: string) =>
+                  setAsanaWorkspaceGidInputHasValue(!!value)
+                }
+                onAsanaProjectGidChange={(value: string) =>
+                  setAsanaProjectGidInputHasValue(!!value)
+                }
+              />
+            </div>
+          )}
         </div>
       )}
 

@@ -51,6 +51,7 @@ from openhands.events.observation import (
     NullObservation,
 )
 from openhands.experiments.experiment_manager import ExperimentConfig
+from openhands.integrations.asana.asana_service import remove_conversation_mapping
 from openhands.integrations.provider import (
     PROVIDER_TOKEN_TYPE,
     ProviderHandler,
@@ -539,6 +540,9 @@ async def _try_delete_v1_conversation(
                 app_conversation_info.id
             )
 
+            # Clean up Asana task mapping if exists
+            await remove_conversation_mapping(conversation_id)
+
             # Manually commit so that the conversation will vanish from the list
             await db_session.commit()
 
@@ -596,6 +600,10 @@ async def _delete_v0_conversation(conversation_id: str, user_id: str | None) -> 
     runtime_cls = get_runtime_cls(config.runtime)
     await runtime_cls.delete(conversation_id)
     await conversation_store.delete_metadata(conversation_id)
+
+    # Clean up Asana task mapping if exists
+    await remove_conversation_mapping(conversation_id)
+
     return True
 
 

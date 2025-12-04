@@ -36,6 +36,12 @@ const getSettingsQueryFn = async (): Promise<Settings> => {
     GIT_USER_EMAIL:
       apiSettings.git_user_email || DEFAULT_SETTINGS.GIT_USER_EMAIL,
     IS_NEW_USER: false,
+    // Asana integration settings
+    ASANA_ACCESS_TOKEN_SET: apiSettings.asana_access_token_set,
+    ASANA_WEBHOOK_SECRET_SET: apiSettings.asana_webhook_secret_set,
+    ASANA_AGENT_USER_GID: apiSettings.asana_agent_user_gid,
+    ASANA_WORKSPACE_GID: apiSettings.asana_workspace_gid,
+    ASANA_PROJECT_GID: apiSettings.asana_project_gid,
   };
 };
 
